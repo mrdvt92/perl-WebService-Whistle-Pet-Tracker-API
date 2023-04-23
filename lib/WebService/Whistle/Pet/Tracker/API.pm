@@ -230,7 +230,8 @@ sub ua {
 
 =head1 SEE ALSO
 
-L<https://github.com/RobertD502/whistleaio> python implementation
+L<https://github.com/RobertD502/whistleaio> Python implementation
+L<https://github.com/martzcodes/node-whistle> NodeJS implementation (old api)
 
 =head1 AUTHOR
 
@@ -238,9 +239,9 @@ Michael R. Davis
 
 =head1 COPYRIGHT AND LICENSE
 
-MIT
+MIT License
 
-Copyright (C) 2023 by Michael R. Davis
+Copyright (c) 2023 Michael R. Davis
 
 =cut
 

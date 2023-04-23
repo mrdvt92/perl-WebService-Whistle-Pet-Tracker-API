@@ -93,7 +93,8 @@ Returns an [HTTP::Tiny](https://metacpan.org/pod/HTTP::Tiny) web client user age
 
 # SEE ALSO
 
-[https://github.com/RobertD502/whistleaio](https://github.com/RobertD502/whistleaio) python implementation
+[https://github.com/RobertD502/whistleaio](https://github.com/RobertD502/whistleaio) Python implementation
+[https://github.com/martzcodes/node-whistle](https://github.com/martzcodes/node-whistle) NodeJS implementation (old api)
 
 # AUTHOR
 
@@ -101,6 +102,6 @@ Michael R. Davis
 
 # COPYRIGHT AND LICENSE
 
-MIT
+MIT License
 
-Copyright (C) 2023 by Michael R. Davis
+Copyright (c) 2023 Michael R. Davis
