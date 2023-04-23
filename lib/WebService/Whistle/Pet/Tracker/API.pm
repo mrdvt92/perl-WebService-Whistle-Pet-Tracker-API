@@ -24,7 +24,7 @@ WebService::Whistle::Pet::Tracker::API - Perl interface to access the Whistle Pe
 
 =head1 DESCRIPTION
 
-Perl interface to access the Whistle Pet Tracker Web Service
+Perl interface to access the Whistle Pet Tracker Web Service.  All methods return JSON payloads that are converted to Perl data structures.  Methods that require authentication will request a token and cache it for the duration of the object.
 
 =head1 CONSTRUCTORS
  
@@ -73,63 +73,11 @@ sub password {
 
 =head1 METHODS
 
-=head2 api
-
-Returns the decoded JSON data from the given web service end point
-
-  my $data = $ws->api('/end_point');
-
-=cut
-
-sub api {
-  my $self             = shift;
-  my $api_destination  = shift or die("Error: api method requires destination");
-  my $url              = $API_URL. $api_destination;
-  my $response         = $api_destination eq '/login'
-                       ? $self->ua->post_form($url, [email => $self->email, password => $self->password])
-                       : $self->ua->get($url, {
-                                               headers => {
-                                                           Accept        => 'application/vnd.whistle.com.v6+json',
-                                                           Authorization => 'Bearer '. $self->auth_token,
-                                                          },
-                                              }
-                                       );
-  print Data::Dumper::Dumper({response => $response}) if $self->{'DEBUG'};
-  my $status           = $response->{'status'};
-  die("Error: Web service request unsuccessful - dest: $api_destination, status: $status\n") unless $status =~ m/\A20[01]\Z/;
-  my $response_content = $response->{'content'};
-  local $@;
-  my $response_decoded = eval{JSON::XS::decode_json($response_content)};
-  my $error            = $@;
-  die("Error: API returned invalid JSON - dest: $api_destination, content: $response_content\n") if $error;
-  print Data::Dumper::Dumper({response_decoded => $response_decoded}) if $self->{'DEBUG'};
-  return $response_decoded;
-}
-
-=head2 login
-
-Returns and caches the login response.
-
-=cut
-
-sub login {
-  my $self         = shift;
-  $self->{'login'} = shift if @_;
-  $self->{'login'} = $self->api('/login') unless defined $self->{'login'};
-  return $self->{'login'};
-}
-
-=head2 auth_token
-
-Retrieves the authentication token from the login end point
-
-=cut
-
-sub auth_token {shift->login->{'auth_token'}};
-
 =head2 pets
 
 Returns a list of pets as an array reference
+
+  my $pets = $ws->pets;
 
 =cut
 
@@ -204,9 +152,63 @@ Returns registered places as an array reference
 
 =cut
 
-sub places {shift->api('/places')};
+sub places {shift->api('/places')}; #this api call returns an array instead of a hash
 
-=head1 SERVICES
+=head1 METHODS (API)
+
+=head2 api
+
+Returns the decoded JSON data from the given web service end point
+
+  my $data = $ws->api('/end_point');
+
+=cut
+
+sub api {
+  my $self             = shift;
+  my $api_destination  = shift or die("Error: api method requires destination");
+  my $url              = $API_URL. $api_destination;
+  my $response         = $api_destination eq '/login'
+                       ? $self->ua->post_form($url, [email => $self->email, password => $self->password])
+                       : $self->ua->get($url, {
+                                               headers => {
+                                                           Accept        => 'application/vnd.whistle.com.v6+json',
+                                                           Authorization => 'Bearer '. $self->auth_token,
+                                                          },
+                                              }
+                                       );
+  print Data::Dumper::Dumper({response => $response}) if $self->{'DEBUG'};
+  my $status           = $response->{'status'};
+  die("Error: Web service request unsuccessful - dest: $api_destination, status: $status\n") unless $status =~ m/\A20[01]\Z/;
+  my $response_content = $response->{'content'};
+  local $@;
+  my $response_decoded = eval{JSON::XS::decode_json($response_content)};
+  my $error            = $@;
+  die("Error: API returned invalid JSON - dest: $api_destination, content: $response_content\n") if $error;
+  print Data::Dumper::Dumper({response_decoded => $response_decoded}) if $self->{'DEBUG'};
+  return $response_decoded;
+}
+
+=head2 login
+
+Calls the login service, caches, and returns the response.
+
+=cut
+
+sub login {
+  my $self         = shift;
+  $self->{'login'} = shift if @_;
+  $self->{'login'} = $self->api('/login') unless defined $self->{'login'};
+  return $self->{'login'};
+}
+
+=head2 auth_token
+
+Retrieves the authentication token from the login end point
+
+=cut
+
+sub auth_token {shift->login->{'auth_token'}};
 
 =head1 ACCESSORS
  
@@ -230,8 +232,8 @@ sub ua {
 
 =head1 SEE ALSO
 
-L<https://github.com/RobertD502/whistleaio> Python implementation
-L<https://github.com/martzcodes/node-whistle> NodeJS implementation (old api)
+  - L<https://github.com/RobertD502/whistleaio> Python implementation
+  - L<https://github.com/martzcodes/node-whistle> NodeJS implementation (old api)
 
 =head1 AUTHOR
 

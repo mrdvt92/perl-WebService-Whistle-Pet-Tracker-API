@@ -13,7 +13,7 @@ WebService::Whistle::Pet::Tracker::API - Perl interface to access the Whistle Pe
 
 # DESCRIPTION
 
-Perl interface to access the Whistle Pet Tracker Web Service
+Perl interface to access the Whistle Pet Tracker Web Service.  All methods return JSON payloads that are converted to Perl data structures.  Methods that require authentication will request a token and cache it for the duration of the object.
 
 # CONSTRUCTORS
 
@@ -34,23 +34,11 @@ Sets and returns the registered whistle account password
 
 # METHODS
 
-## api
-
-Returns the decoded JSON data from the given web service end point
-
-    my $data = $ws->api('/end_point');
-
-## login
-
-Returns and caches the login response.
-
-## auth\_token
-
-Retrieves the authentication token from the login end point
-
 ## pets
 
 Returns a list of pets as an array reference
+
+    my $pets = $ws->pets;
 
 ## device
 
@@ -83,7 +71,21 @@ Returns registered places as an array reference
 
     my $places = $ws->places;
 
-# SERVICES
+# METHODS (API)
+
+## api
+
+Returns the decoded JSON data from the given web service end point
+
+    my $data = $ws->api('/end_point');
+
+## login
+
+Calls the login service, caches, and returns the response.
+
+## auth\_token
+
+Retrieves the authentication token from the login end point
 
 # ACCESSORS
 
@@ -93,8 +95,8 @@ Returns an [HTTP::Tiny](https://metacpan.org/pod/HTTP::Tiny) web client user age
 
 # SEE ALSO
 
-[https://github.com/RobertD502/whistleaio](https://github.com/RobertD502/whistleaio) Python implementation
-[https://github.com/martzcodes/node-whistle](https://github.com/martzcodes/node-whistle) NodeJS implementation (old api)
+    - L<https://github.com/RobertD502/whistleaio> Python implementation
+    - L<https://github.com/martzcodes/node-whistle> NodeJS implementation (old api)
 
 # AUTHOR
 
