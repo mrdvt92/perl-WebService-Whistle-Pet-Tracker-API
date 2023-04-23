@@ -232,8 +232,13 @@ sub ua {
 
 =head1 SEE ALSO
 
-  - L<https://github.com/RobertD502/whistleaio> Python implementation
-  - L<https://github.com/martzcodes/node-whistle> NodeJS implementation (old api)
+=over
+
+=item Python - L<https://github.com/RobertD502/whistleaio>
+
+=item NodeJS (old api) - L<https://github.com/martzcodes/node-whistle>
+
+=back
 
 =head1 AUTHOR
 
