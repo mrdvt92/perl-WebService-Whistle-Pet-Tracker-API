@@ -4,11 +4,18 @@ WriteMakefile(
   LICENSE        => 'mit',
   VERSION_FROM   => 'lib/WebService/Whistle/Pet/Tracker/API.pm',
   PREREQ_PM      => {
-                     'JSON::XS'     => 0,
-                     'HTTP::Tiny'   => 0,
+                     'JSON::XS'          => 0,
+                     'HTTP::Tiny'        => 0,
+                     'Tie::IxHash'       => 0,
+                     'Net::MQTT::Simple' => 0,
                     },
   ABSTRACT_FROM  => 'lib/WebService/Whistle/Pet/Tracker/API.pm',
   AUTHOR         => 'Michael R. Davis',
+    EXE_FILES    => [
+                    qw{
+                       scripts/perl-WebService-Whistle-Pet-Tracker-API-mqtt.pl
+                      }
+                    ],
   'META_MERGE' => {
     'resources' => {
       'repository' => {

@@ -5,7 +5,7 @@ use Data::Dumper qw{};
 use JSON::XS qw{};
 use HTTP::Tiny qw{};
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $PACKAGE = __PACKAGE__;
 our $API_URL = 'https://app.whistle.com/api';
 
@@ -111,7 +111,7 @@ Returns dailies for the given pet id
 
 sub pet_dailies {
   my $self   = shift;
-  my $pet_id = shift or die;
+  my $pet_id = shift or die("Error: pet id required");
   return $self->api("/pets/$pet_id/dailies")->{'dailies'}; #https://app.whistle.com/api/pets/123456789/dailies
 }
 
@@ -166,7 +166,7 @@ Returns the decoded JSON data from the given web service end point
 
 sub api {
   my $self             = shift;
-  my $api_destination  = shift or die("Error: api method requires destination");
+  my $api_destination  = shift or die("Error: api destination required");
   my $url              = $API_URL. $api_destination;
   my $response         = $api_destination eq '/login'
                        ? $self->ua->post_form($url, [email => $self->email, password => $self->password])
@@ -179,12 +179,17 @@ sub api {
                                        );
   print Data::Dumper::Dumper({response => $response}) if $self->{'DEBUG'};
   my $status           = $response->{'status'};
-  die("Error: Web service request unsuccessful - dest: $api_destination, status: $status\n") unless $status =~ m/\A20[01]\Z/;
+  if ($api_destination eq '/login') {
+    die("Error: Whistle API login failed\n") if $status eq 422;
+    die("Error: Whistle API request unsuccessful - dest: $api_destination, status: $status\n") unless $status eq 201;
+  } else {
+    die("Error: Whistle API request unsuccessful - dest: $api_destination, status: $status\n") unless $status eq 200;
+  }
   my $response_content = $response->{'content'};
   local $@;
   my $response_decoded = eval{JSON::XS::decode_json($response_content)};
   my $error            = $@;
-  die("Error: API returned invalid JSON - dest: $api_destination, content: $response_content\n") if $error;
+  die("Error: Whistle API invalid JSON - dest: $api_destination, content: $response_content\n") if $error;
   print Data::Dumper::Dumper({response_decoded => $response_decoded}) if $self->{'DEBUG'};
   return $response_decoded;
 }

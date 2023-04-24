@@ -11,3 +11,4 @@ t/004_device.t
 t/005_others.t
 lib/WebService/Whistle/Pet/Tracker/API.pm
 perl-WebService-Whistle-Pet-Tracker-API.spec
+scripts/perl-WebService-Whistle-Pet-Tracker-API-mqtt.pl
