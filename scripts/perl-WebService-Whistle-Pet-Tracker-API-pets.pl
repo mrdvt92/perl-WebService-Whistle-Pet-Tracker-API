@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use JSON::XS;
 use File::Basename qw{basename};
 use Getopt::Std qw{getopts};
+use JSON::XS qw{};
 use WebService::Whistle::Pet::Tracker::API qw{};
 
 my $basename = basename($0);
