@@ -14,3 +14,6 @@ NodeJS
 MQTT
 mqtt
 WebService
+TODO
+systemd
+preconfigured

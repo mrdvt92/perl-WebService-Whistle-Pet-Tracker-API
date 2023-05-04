@@ -8,12 +8,15 @@ WriteMakefile(
                      'HTTP::Tiny'        => 0,
                      'Tie::IxHash'       => 0,
                      'Net::MQTT::Simple' => 0,
+                     'Time::HiRes'       => 0,
                     },
   ABSTRACT_FROM  => 'lib/WebService/Whistle/Pet/Tracker/API.pm',
   AUTHOR         => 'Michael R. Davis',
     EXE_FILES    => [
                     qw{
                        scripts/perl-WebService-Whistle-Pet-Tracker-API-mqtt.pl
+                       scripts/perl-WebService-Whistle-Pet-Tracker-API-pets.pl
+                       scripts/perl-WebService-Whistle-Pet-Tracker-API-device.pl
                       }
                     ],
   'META_MERGE' => {

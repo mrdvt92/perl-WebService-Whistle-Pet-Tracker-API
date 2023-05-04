@@ -11,4 +11,9 @@ t/004_device.t
 t/005_others.t
 lib/WebService/Whistle/Pet/Tracker/API.pm
 perl-WebService-Whistle-Pet-Tracker-API.spec
+scripts/perl-WebService-Whistle-Pet-Tracker-API-pets.pl
+scripts/perl-WebService-Whistle-Pet-Tracker-API-device.pl
 scripts/perl-WebService-Whistle-Pet-Tracker-API-mqtt.pl
+systemd/perl-WebService-Whistle-Pet-Tracker-API-mqtt.service
+systemd/perl-WebService-Whistle-Pet-Tracker-API-mqtt.timer
+systemd/perl-WebService-Whistle-Pet-Tracker-API-mqtt.service.d/override.conf

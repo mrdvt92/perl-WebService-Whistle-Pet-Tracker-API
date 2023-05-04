@@ -5,6 +5,7 @@ use File::Basename qw{basename};
 use Getopt::Std qw{getopts};
 use Tie::IxHash qw{};
 use JSON::XS qw{encode_json};
+use Time::HiRes qw{};
 use WebService::Whistle::Pet::Tracker::API qw{};
 require Net::MQTT::Simple; #skip import
 
@@ -18,10 +19,19 @@ my $host     = $opt->{'h'} || $ENV{'MQTT_HOST'}        || 'mqtt';
 my $email    = $opt->{'e'} || $ENV{'WHISTLE_EMAIL'}    or die($syntax);
 my $password = $opt->{'p'} || $ENV{'WHISTLE_PASSWORD'} or die($syntax);
 
+my $timer    = Time::HiRes::time;
 my $mqtt     = Net::MQTT::Simple->new($host);
-my $ws       = WebService::Whistle::Pet::Tracker::API->new(email=>$email, password=>$password);
+{
+  #Net::MQTT::Simple warns on connection error but we want die
+  local $0               = 'MQTT';
+  local $SIG{'__WARN__'} = sub {my $error = shift; die "Error: $error"};
+  $mqtt->_connect;
+}
 
+my $ws       = WebService::Whistle::Pet::Tracker::API->new(email=>$email, password=>$password);
+my $url      = $WebService::Whistle::Pet::Tracker::API::API_URL;
 my $pets     = $ws->pets;
+my $count    = 0;
 
 foreach my $pet (@$pets) {
   my $topic = "stat/whistle-pet-tracker/pet/". $pet->{'id'};
@@ -32,14 +42,17 @@ foreach my $pet (@$pets) {
                                     t   => $pet->{'last_location'}->{'timestamp'},
                                    );
 
-  $mqtt->publish("$topic/name"                  => $pet->{'name'}                       );
-  $mqtt->publish("$topic/last_location"         => encode_json(\%location)              );
-  $mqtt->publish("$topic/device/battery_level"  => $pet->{'device'}->{'battery_level'}  );
-  $mqtt->publish("$topic/device/battery_status" => $pet->{'device'}->{'battery_status'} );
+  $count++ if $mqtt->publish("$topic/name"                  => $pet->{'name'}                       );
+  $count++ if $mqtt->publish("$topic/last_location"         => encode_json(\%location)              );
+  $count++ if $mqtt->publish("$topic/device/battery_level"  => $pet->{'device'}->{'battery_level'}  );
+  $count++ if $mqtt->publish("$topic/device/battery_status" => $pet->{'device'}->{'battery_status'} );
 }
 
 $mqtt->tick(0.1);
 $mqtt->disconnect;
+
+$timer = Time::HiRes::time - $timer;
+printf "Finished: Whistle: %s, MQTT: %s, Messages: %s, Time: %0.1f ms\n", $url, $host, $count, $timer * 1000;
 
 __END__
 
@@ -76,5 +89,18 @@ Topics:
 -e Specifies the Whistle account name to use for authentication
 
 -p Specifies the Whistle account password to use for authentication
+
+=head1 CONFIGURATION
+
+This distribution contains systemd configuration files which are not preconfigured.  Please use the systemd edit command to configure your credentials.
+
+  sudo systemctl edit   perl-WebService-Whistle-Pet-Tracker-API-mqtt
+  sudo systemctl enable perl-WebService-Whistle-Pet-Tracker-API-mqtt
+  sudo systemctl start  perl-WebService-Whistle-Pet-Tracker-API-mqtt
+
+=head1 TODO
+
+Publish more data elements
+
 
 =cut

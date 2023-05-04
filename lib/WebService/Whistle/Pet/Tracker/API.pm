@@ -1,11 +1,10 @@
 package WebService::Whistle::Pet::Tracker::API;
 use strict;
 use warnings;
-use Data::Dumper qw{};
 use JSON::XS qw{};
 use HTTP::Tiny qw{};
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our $PACKAGE = __PACKAGE__;
 our $API_URL = 'https://app.whistle.com/api';
 
@@ -19,7 +18,7 @@ WebService::Whistle::Pet::Tracker::API - Perl interface to access the Whistle Pe
   my $ws   = WebService::Whistle::Pet::Tracker::API->new(email=>$email, password=>$password);
   my $pets = $ws->pets; #isa ARRAY of HASHes
   foreach my $pet (@$pets) {
-    print Dumper($pet);
+    print JSON::XS->new->pretty->encode($pet);
   }
 
 =head1 DESCRIPTION
@@ -47,27 +46,27 @@ sub new {
 
 =head2 email
 
-Sets and returns the registered whistle account email
+Sets and returns the registered Whistle account email
 
 =cut
 
 sub email {
   my $self         = shift;
   $self->{'email'} = shift if @_;
-  die("Error: email required") unless $self->{'email'};
+  die("Error: Whistle API: email required") unless $self->{'email'};
   return $self->{'email'};
 }
 
 =head2 password
 
-Sets and returns the registered whistle account password
+Sets and returns the registered Whistle account password
 
 =cut
 
 sub password {
   my $self            = shift;
   $self->{'password'} = shift if @_;
-  die("Error: password required") unless $self->{'password'};
+  die("Error: Whistle API: password required") unless $self->{'password'};
   return $self->{'password'};
 }
 
@@ -97,7 +96,7 @@ Returns device data for the given device id
 
 sub device {
   my $self          = shift;
-  my $serial_number = shift or die("Error: Device serial number required.");
+  my $serial_number = shift or die("Error: Whistle API: Device serial number required.");
   return $self->api("/devices/$serial_number")->{'device'};
 }
 
@@ -111,7 +110,7 @@ Returns dailies for the given pet id
 
 sub pet_dailies {
   my $self   = shift;
-  my $pet_id = shift or die("Error: pet id required");
+  my $pet_id = shift or die("Error: Whistle API: pet id required");
   return $self->api("/pets/$pet_id/dailies")->{'dailies'}; #https://app.whistle.com/api/pets/123456789/dailies
 }
 
@@ -125,8 +124,8 @@ Returns the daily items for the given pet id and day number
 
 sub pet_daily_items {
   my $self       = shift;
-  my $pet_id     = shift or die("Error: pet id required");
-  my $day_number = shift or die("Error: day number required");
+  my $pet_id     = shift or die("Error: Whistle API: pet id required");
+  my $day_number = shift or die("Error: Whistle API: day number required");
   return $self->api("/pets/$pet_id/dailies/$day_number/daily_items")->{'daily_items'};
 }
 
@@ -140,7 +139,7 @@ Returns pet stats for the given pet id
 
 sub pet_stats {
   my $self   = shift;
-  my $pet_id = shift or die("Error: pet id required");
+  my $pet_id = shift or die("Error: Whistle API: pet id required");
   return $self->api("/pets/$pet_id/stats")->{'stats'};
 }
 
@@ -152,7 +151,7 @@ Returns registered places as an array reference
 
 =cut
 
-sub places {shift->api('/places')}; #this api call returns an array instead of a hash
+sub places {shift->api('/places')}; #this api call returns an array instead of a hash like other calls
 
 =head1 METHODS (API)
 
@@ -166,7 +165,7 @@ Returns the decoded JSON data from the given web service end point
 
 sub api {
   my $self             = shift;
-  my $api_destination  = shift or die("Error: api destination required");
+  my $api_destination  = shift or die("Error: Whistle API: api destination required");
   my $url              = $API_URL. $api_destination;
   my $response         = $api_destination eq '/login'
                        ? $self->ua->post_form($url, [email => $self->email, password => $self->password])
@@ -177,20 +176,21 @@ sub api {
                                                           },
                                               }
                                        );
-  print Data::Dumper::Dumper({response => $response}) if $self->{'DEBUG'};
+  print JSON::XS->new->pretty->encode({response => $response}) if $self->{'DEBUG'};
   my $status           = $response->{'status'};
+  my $reason           = $response->{'reason'};
   if ($api_destination eq '/login') {
-    die("Error: Whistle API login failed\n") if $status eq 422;
-    die("Error: Whistle API request unsuccessful - dest: $api_destination, status: $status\n") unless $status eq 201;
+    die("Error: Whistle API: login failed\n") if $status eq 422;
+    die("Error: Whistle API: request unsuccessful - request: $api_destination, status: $status $reason\n") unless $status eq 201;
   } else {
-    die("Error: Whistle API request unsuccessful - dest: $api_destination, status: $status\n") unless $status eq 200;
+    die("Error: Whistle API: request unsuccessful - request: $api_destination, status: $status $reason\n") unless $status eq 200;
   }
   my $response_content = $response->{'content'};
   local $@;
   my $response_decoded = eval{JSON::XS::decode_json($response_content)};
   my $error            = $@;
-  die("Error: Whistle API invalid JSON - dest: $api_destination, content: $response_content\n") if $error;
-  print Data::Dumper::Dumper({response_decoded => $response_decoded}) if $self->{'DEBUG'};
+  die("Error: Whistle API: invalid JSON - request: $api_destination, status: $status $reason, content: $response_content\n") if $error;
+  print JSON::XS->new->pretty->encode({response_decoded => $response_decoded}) if $self->{'DEBUG'};
   return $response_decoded;
 }
 
