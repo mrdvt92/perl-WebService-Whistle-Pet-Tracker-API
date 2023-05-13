@@ -9,10 +9,13 @@ Source0:        http://www.cpan.org/modules/by-module/WebService/WebService-Whis
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 BuildRequires:  perl(ExtUtils::MakeMaker)
+BuildRequires:  perl(Test::More)
 BuildRequires:  perl(HTTP::Tiny)
 BuildRequires:  perl(JSON::XS)
+BuildRequires:  perl(Crypt::JWT)
 Requires:       perl(HTTP::Tiny)
 Requires:       perl(JSON::XS)
+Requires:       perl(Crypt::JWT)
 Requires:       systemd
 Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 

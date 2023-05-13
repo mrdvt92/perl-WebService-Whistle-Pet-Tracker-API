@@ -9,6 +9,7 @@ WriteMakefile(
                      'Tie::IxHash'       => 0,
                      'Net::MQTT::Simple' => 0,
                      'Time::HiRes'       => 0,
+                     'Crypt::JWT'        => 0,
                     },
   ABSTRACT_FROM  => 'lib/WebService/Whistle/Pet/Tracker/API.pm',
   AUTHOR         => 'Michael R. Davis',

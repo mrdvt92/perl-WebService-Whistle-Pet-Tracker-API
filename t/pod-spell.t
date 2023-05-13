@@ -17,3 +17,4 @@ WebService
 TODO
 systemd
 preconfigured
+JWT

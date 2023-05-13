@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use JSON::XS qw{};
 use HTTP::Tiny qw{};
+use Crypt::JWT qw{};
 
 our $VERSION = '0.03';
 our $PACKAGE = __PACKAGE__;
@@ -26,13 +27,13 @@ WebService::Whistle::Pet::Tracker::API - Perl interface to access the Whistle Pe
 Perl interface to access the Whistle Pet Tracker Web Service.  All methods return JSON payloads that are converted to Perl data structures.  Methods that require authentication will request a token and cache it for the duration of the object.
 
 =head1 CONSTRUCTORS
- 
+
 =head2 new
- 
+
   my $ws = WebService::Whistle::Pet::Tracker::API->new(email=>$email, password=>$password);
- 
+
 =cut
- 
+
 sub new {
   my $this  = shift;
   my $class = ref($this) ? ref($this) : $this;
@@ -53,7 +54,7 @@ Sets and returns the registered Whistle account email
 sub email {
   my $self         = shift;
   $self->{'email'} = shift if @_;
-  die("Error: Whistle API: email required") unless $self->{'email'};
+  die('Error: Whistle API: email required') unless $self->{'email'};
   return $self->{'email'};
 }
 
@@ -66,7 +67,7 @@ Sets and returns the registered Whistle account password
 sub password {
   my $self            = shift;
   $self->{'password'} = shift if @_;
-  die("Error: Whistle API: password required") unless $self->{'password'};
+  die('Error: Whistle API: password required') unless $self->{'password'};
   return $self->{'password'};
 }
 
@@ -87,7 +88,7 @@ sub pets {
 
 =head2 device
 
-Returns device data for the given device id
+Returns device data for the given device id as a hash reference
 
   my $device        = $ws->device('WXX-ABC123');
   my $battery_level = $device->{'battery_level'}; #0-100 charge level
@@ -96,13 +97,13 @@ Returns device data for the given device id
 
 sub device {
   my $self          = shift;
-  my $serial_number = shift or die("Error: Whistle API: Device serial number required.");
+  my $serial_number = shift or die('Error: Whistle API: Device serial number required.');
   return $self->api("/devices/$serial_number")->{'device'};
 }
 
 =head2 pet_dailies
 
-Returns dailies for the given pet id
+Returns a list of dailies for the given pet id as an array reference
 
   my $pet_dailies = $ws->pet_dailies($pet_id);
 
@@ -110,13 +111,13 @@ Returns dailies for the given pet id
 
 sub pet_dailies {
   my $self   = shift;
-  my $pet_id = shift or die("Error: Whistle API: pet id required");
+  my $pet_id = shift or die('Error: Whistle API: pet id required');
   return $self->api("/pets/$pet_id/dailies")->{'dailies'}; #https://app.whistle.com/api/pets/123456789/dailies
 }
 
 =head2 pet_daily_items
 
-Returns the daily items for the given pet id and day number
+Returns a list of the daily items for the given pet id and day number as an array reference
 
   my $pet_daily_items = $ws->pet_daily_items($pet_id, $day_number);
 
@@ -124,14 +125,14 @@ Returns the daily items for the given pet id and day number
 
 sub pet_daily_items {
   my $self       = shift;
-  my $pet_id     = shift or die("Error: Whistle API: pet id required");
-  my $day_number = shift or die("Error: Whistle API: day number required");
+  my $pet_id     = shift or die('Error: Whistle API: pet id required');
+  my $day_number = shift or die('Error: Whistle API: day number required');
   return $self->api("/pets/$pet_id/dailies/$day_number/daily_items")->{'daily_items'};
 }
 
 =head2 pet_stats
 
-Returns pet stats for the given pet id
+Returns pet stats for the given pet id as a hash reference
 
   my $pet_stats = $ws->pet_stats(123456789);
 
@@ -139,7 +140,7 @@ Returns pet stats for the given pet id
 
 sub pet_stats {
   my $self   = shift;
-  my $pet_id = shift or die("Error: Whistle API: pet id required");
+  my $pet_id = shift or die('Error: Whistle API: pet id required');
   return $self->api("/pets/$pet_id/stats")->{'stats'};
 }
 
@@ -165,7 +166,7 @@ Returns the decoded JSON data from the given web service end point
 
 sub api {
   my $self             = shift;
-  my $api_destination  = shift or die("Error: Whistle API: api destination required");
+  my $api_destination  = shift or die('Error: Whistle API: api destination required');
   my $url              = $API_URL. $api_destination;
   my $response         = $api_destination eq '/login'
                        ? $self->ua->post_form($url, [email => $self->email, password => $self->password])
@@ -196,33 +197,42 @@ sub api {
 
 =head2 login
 
-Calls the login service, caches, and returns the response.
+Calls the login service, caches, and returns the response as a hash reference.
 
 =cut
 
 sub login {
   my $self         = shift;
   $self->{'login'} = shift if @_;
+  if (defined $self->{'login'}) {
+    my $token   = $self->{'login'}->{'auth_token'};
+    my $decoded = eval{Crypt::JWT::decode_jwt(token=>$token, ignore_signature=>1, verify_exp=>0)}; #{exp=>1685151718,user_id=>12345}
+    if ($decoded and ref($decoded) eq 'HASH' and $decoded->{'exp'}) {
+      delete($self->{'login'}) if time > $decoded->{'exp'};
+    } else {
+      delete($self->{'login'});
+    }
+  }
   $self->{'login'} = $self->api('/login') unless defined $self->{'login'};
   return $self->{'login'};
 }
 
 =head2 auth_token
 
-Retrieves the authentication token from the login end point
+Retrieves the authentication JWT token from the login end point
 
 =cut
 
 sub auth_token {shift->login->{'auth_token'}};
 
 =head1 ACCESSORS
- 
+
 =head2 ua
- 
+
 Returns an L<HTTP::Tiny> web client user agent
- 
+
 =cut
- 
+
 sub ua {
   my $self = shift;
   unless ($self->{'ua'}) {
