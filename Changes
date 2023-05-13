@@ -1,5 +1,9 @@
 Revision history for Perl extension WebService::Whistle::Pet::Tracker::API.
 
+0.04 2023-05-13
+  - Updated lib/WebService/Whistle/Pet/Tracker/API.pm
+    - Added JWT decode and exp cache limit
+
 0.03 2023-05-02
   - Updated lib/WebService/Whistle/Pet/Tracker/API.pm
     - Moved debug logging from Data::Dumper to JSON::XS

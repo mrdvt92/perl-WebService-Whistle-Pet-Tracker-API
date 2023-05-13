@@ -5,7 +5,7 @@ use JSON::XS qw{};
 use HTTP::Tiny qw{};
 use Crypt::JWT qw{};
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our $PACKAGE = __PACKAGE__;
 our $API_URL = 'https://app.whistle.com/api';
 
