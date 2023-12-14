@@ -1,6 +1,6 @@
 Name:           perl-WebService-Whistle-Pet-Tracker-API
 Version:        0.04
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Perl interface to access the Whistle Pet Tracker Web Service
 License:        MIT
 Group:          Development/Libraries
