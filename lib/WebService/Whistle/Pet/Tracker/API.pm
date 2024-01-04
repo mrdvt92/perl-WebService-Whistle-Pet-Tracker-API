@@ -119,6 +119,7 @@ sub pet_dailies {
 
 Returns a list of the daily items for the given pet id and day number as an array reference
 
+  my $day_number      = int(time/24/60/60) - 1; #yesterday
   my $pet_daily_items = $ws->pet_daily_items($pet_id, $day_number);
 
 =cut

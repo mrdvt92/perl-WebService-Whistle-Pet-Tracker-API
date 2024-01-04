@@ -8,7 +8,7 @@ WebService::Whistle::Pet::Tracker::API - Perl interface to access the Whistle Pe
     my $ws   = WebService::Whistle::Pet::Tracker::API->new(email=>$email, password=>$password);
     my $pets = $ws->pets; #isa ARRAY of HASHes
     foreach my $pet (@$pets) {
-      print Dumper($pet);
+      print JSON::XS->new->pretty->encode($pet);
     }
 
 # DESCRIPTION
@@ -19,18 +19,17 @@ Perl interface to access the Whistle Pet Tracker Web Service.  All methods retur
 
 ## new
 
-     my $ws = WebService::Whistle::Pet::Tracker::API->new(email=>$email, password=>$password);
-    
+    my $ws = WebService::Whistle::Pet::Tracker::API->new(email=>$email, password=>$password);
 
 # PROPERTIES
 
 ## email
 
-Sets and returns the registered whistle account email
+Sets and returns the registered Whistle account email
 
 ## password
 
-Sets and returns the registered whistle account password
+Sets and returns the registered Whistle account password
 
 # METHODS
 
@@ -42,26 +41,27 @@ Returns a list of pets as an array reference
 
 ## device
 
-Returns device data for the given device id
+Returns device data for the given device id as a hash reference
 
     my $device        = $ws->device('WXX-ABC123');
     my $battery_level = $device->{'battery_level'}; #0-100 charge level
 
 ## pet\_dailies
 
-Returns dailies for the given pet id
+Returns a list of dailies for the given pet id as an array reference
 
     my $pet_dailies = $ws->pet_dailies($pet_id);
 
 ## pet\_daily\_items
 
-Returns the daily items for the given pet id and day number
+Returns a list of the daily items for the given pet id and day number as an array reference
 
+    my $day_number      = int(time/24/60/60) - 1; #yesterday
     my $pet_daily_items = $ws->pet_daily_items($pet_id, $day_number);
 
 ## pet\_stats
 
-Returns pet stats for the given pet id
+Returns pet stats for the given pet id as a hash reference
 
     my $pet_stats = $ws->pet_stats(123456789);
 
@@ -81,11 +81,11 @@ Returns the decoded JSON data from the given web service end point
 
 ## login
 
-Calls the login service, caches, and returns the response.
+Calls the login service, caches, and returns the response as a hash reference.
 
 ## auth\_token
 
-Retrieves the authentication token from the login end point
+Retrieves the authentication JWT token from the login end point
 
 # ACCESSORS
 
